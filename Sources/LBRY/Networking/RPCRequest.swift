@@ -59,3 +59,24 @@ public extension URLRequest {
         }
     }
 }
+// MARK: - Request Convertible
+
+public protocol RPCRequestConvertible: Encodable {
+    
+    associatedtype Response: Decodable
+    
+    static var method: RPCMethod { get }
+}
+
+public extension RPCRequest where Parameters: RPCRequestConvertible {
+    
+    init(parameters: Parameters, id: UInt = .random(in: 1 ... 99999)) {
+        self.init(
+            version: .v2_0,
+            id: id,
+            method: Parameters.method,
+            parameters: parameters
+        )
+    }
+}
+
