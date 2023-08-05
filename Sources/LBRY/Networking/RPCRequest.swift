@@ -13,13 +13,25 @@ import FoundationNetworking
 /// RPC Request
 public struct RPCRequest <Parameters>: Identifiable {
     
-    public var version: JSONRPCVersion
+    public var version: RPCVersion
     
     public let id: UInt
     
     public var method: RPCMethod
     
     public var parameters: Parameters
+    
+    public init(
+        version: RPCVersion = .v2_0,
+        id: UInt = UInt.random(in: 1 ... 99999),
+        method: RPCMethod,
+        parameters: Parameters
+    ) {
+        self.version = version
+        self.id = id
+        self.method = method
+        self.parameters = parameters
+    }
     
     enum CodingKeys: String, CodingKey {
         
@@ -59,6 +71,7 @@ public extension URLRequest {
         }
     }
 }
+
 // MARK: - Request Convertible
 
 public protocol RPCRequestConvertible: Encodable {
@@ -80,3 +93,46 @@ public extension RPCRequest where Parameters: RPCRequestConvertible {
     }
 }
 
+// MARK: - URL Client
+
+public extension URLClient {
+    
+    func response<Request, Response>(
+        for request: RPCRequest<Request>,
+        id: UInt = UInt.random(in: 1 ... 99999),
+        server: LBRYServer = .localhost(),
+        token: AuthorizationToken? = nil
+    ) async throws -> Response where Request: Encodable, Response: Decodable {
+        let decoder = JSONDecoder.lbry
+        let urlRequest = try URLRequest(
+            request: request,
+            server: server,
+            token: token
+        )
+        let (data, urlResponse) = try await self.data(for: urlRequest)
+        guard let httpResponse = urlResponse as? HTTPURLResponse else {
+            throw URLError(.badServerResponse)
+        }
+        guard httpResponse.statusCode >= 200,
+              httpResponse.statusCode < 300 else {
+            throw LBRYError.invalidStatusCode(httpResponse.statusCode)
+        }
+        let response = try decoder.decode(RPCResponse<Response>.self, from: data)
+        guard let result = Result<Response, RPCError>.init(response: response) else {
+            throw LBRYError.invalidResponse(data)
+        }
+        return try result
+            .mapError { LBRYError.serverError($0) }
+            .get()
+    }
+    
+    func response<Request: RPCRequestConvertible>(
+        for request: Request,
+        id: UInt = UInt.random(in: 1 ... 99999),
+        server: LBRYServer = .localhost(),
+        token: AuthorizationToken? = nil
+    ) async throws -> Request.Response {
+        let request = RPCRequest(method: Request.method, parameters: request)
+        return try await response(for: request, id: id, server: server, token: token)
+    }
+}
