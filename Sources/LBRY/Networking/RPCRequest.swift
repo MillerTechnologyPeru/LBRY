@@ -23,7 +23,7 @@ public struct RPCRequest <Parameters>: Identifiable {
     
     public init(
         version: RPCVersion = .v2_0,
-        id: UInt = UInt.random(in: 1 ... 99999),
+        id: UInt = UInt(Date().timeIntervalSince1970),
         method: RPCMethod,
         parameters: Parameters
     ) {
@@ -83,7 +83,7 @@ public protocol RPCRequestConvertible: Encodable {
 
 public extension RPCRequest where Parameters: RPCRequestConvertible {
     
-    init(parameters: Parameters, id: UInt = .random(in: 1 ... 99999)) {
+    init(parameters: Parameters, id: UInt = UInt(Date().timeIntervalSince1970)) {
         self.init(
             version: .v2_0,
             id: id,
@@ -99,7 +99,7 @@ public extension URLClient {
     
     func response<Request, Response>(
         for request: RPCRequest<Request>,
-        id: UInt = UInt.random(in: 1 ... 99999),
+        id: UInt = UInt(Date().timeIntervalSince1970),
         server: LBRYServer = .localhost(),
         token: AuthorizationToken? = nil
     ) async throws -> Response where Request: Encodable, Response: Decodable {
@@ -128,7 +128,7 @@ public extension URLClient {
     
     func response<Request: RPCRequestConvertible>(
         for request: Request,
-        id: UInt = UInt.random(in: 1 ... 99999),
+        id: UInt = UInt(Date().timeIntervalSince1970),
         server: LBRYServer = .localhost(),
         token: AuthorizationToken? = nil
     ) async throws -> Request.Response {
