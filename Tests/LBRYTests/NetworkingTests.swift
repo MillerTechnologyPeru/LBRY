@@ -17,7 +17,7 @@ final class NetworkingTests: XCTestCase {
     func testClaimSearch() async throws {
         
         let client = MockClient(json: .claimSearchResponse)
-        let request = try LBRYMockJSONData.claimSearchRequest.decode(RPCRequest<ClaimSearchRequest>.self).parameters
+        let request = ClaimSearchRequest.mock
         let response = try await client.response(for: request)
         XCTAssertEqual(response.items.count, 20)
     }

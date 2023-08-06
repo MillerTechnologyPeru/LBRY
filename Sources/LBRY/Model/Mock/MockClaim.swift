@@ -12,8 +12,28 @@ import Foundation
 public extension Claim {
     
     static var mock: [Claim] {
-        let response = try! LBRYMockJSONData.claimSearchResponse.decode(RPCResponse<Page<Claim>>.self)
-        return response.result!.items
+        RPCResponse<Page<Claim>>.mock.result!.items
+    }
+}
+
+public extension ClaimSearchRequest {
+    
+    static var mock: ClaimSearchRequest {
+        RPCRequest<ClaimSearchRequest>.mock.parameters
+    }
+}
+
+public extension RPCRequest where Parameters == ClaimSearchRequest {
+    
+    static var mock: RPCRequest<ClaimSearchRequest> {
+        try! LBRYMockJSONData.claimSearchRequest.decode(RPCRequest<ClaimSearchRequest>.self)
+    }
+}
+
+public extension RPCResponse where Result == Page<Claim> {
+    
+    static var mock: RPCResponse<Page<Claim>> {
+        try! LBRYMockJSONData.claimSearchResponse.decode(RPCResponse<Page<Claim>>.self)
     }
 }
 
