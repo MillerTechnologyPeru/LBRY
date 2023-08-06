@@ -117,7 +117,17 @@ public extension URLClient {
               httpResponse.statusCode < 300 else {
             throw LBRYError.invalidStatusCode(httpResponse.statusCode)
         }
-        let response = try decoder.decode(RPCResponse<Response>.self, from: data)
+        let response: RPCResponse<Response>
+        do {
+            response = try decoder.decode(RPCResponse<Response>.self, from: data)
+        }
+        catch {
+            #if DEBUG
+            throw error
+            #else
+            throw LBRYError.invalidResponse(data)
+            #endif
+        }
         guard let result = Result<Response, RPCError>.init(response: response) else {
             throw LBRYError.invalidResponse(data)
         }
