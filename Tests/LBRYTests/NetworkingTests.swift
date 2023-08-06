@@ -8,6 +8,9 @@
 import Foundation
 import XCTest
 @testable import LBRY
+#if canImport(FoundationNetworking)
+import FoundationNetworking
+#endif
 
 final class NetworkingTests: XCTestCase {
     
