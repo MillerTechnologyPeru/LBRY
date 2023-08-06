@@ -11,7 +11,7 @@ public struct RPCResponse <Result>: Identifiable {
     
     public let version: RPCVersion
     
-    public let id: UInt
+    public let id: UInt?
         
     public let result: Result?
     
